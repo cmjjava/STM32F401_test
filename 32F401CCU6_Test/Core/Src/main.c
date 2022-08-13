@@ -57,7 +57,18 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void toogleLED( void )
+{
+	static GPIO_PinState LedState = GPIO_PIN_RESET;
 
+	if( LedState == GPIO_PIN_RESET )
+		LedState = GPIO_PIN_SET;
+	else
+		LedState = GPIO_PIN_RESET;
+
+	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, LedState);
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -99,10 +110,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	HAL_Delay(1000);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	HAL_Delay(1000);
+
+	HAL_Delay(500);
+	toogleLED();
 
     /* USER CODE BEGIN 3 */
   }
