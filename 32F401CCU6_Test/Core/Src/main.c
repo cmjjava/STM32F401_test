@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,6 +69,13 @@ void toogleLED( void )
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, LedState);
 
 }
+
+int _write(int file, char *p, int len)
+{
+	HAL_UART_Transmit(&huart1, p, len, 10);
+	return len;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -81,6 +88,7 @@ int main(void)
 	uint32_t interval;
 	char str[] = "Hello !!\r\n";
 	char a;
+	int cnt=0;
 
   /* USER CODE END 1 */
 
@@ -117,10 +125,11 @@ int main(void)
 	  if( HAL_GetTick() > interval+200 ) {
 		  interval = HAL_GetTick();
 		  toogleLED();
+		  printf("\r\nCount : %d", cnt++);
 	  }
 
-	  if( HAL_UART_Receive(&huart2, &a, 1, 100) == HAL_OK ) {
-		  HAL_UART_Transmit(&huart2, &a, 1, 100 );
+	  if( HAL_UART_Receive(&huart1, &a, 1, 100) == HAL_OK ) {
+		  HAL_UART_Transmit(&huart1, &a, 1, 100 );
 	  }
     /* USER CODE BEGIN 3 */
   }
