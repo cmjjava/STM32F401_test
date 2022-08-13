@@ -121,16 +121,18 @@ int main(void)
   interval = HAL_GetTick();
   while (1)
   {
-    /* USER CODE END WHILE */
-	  if( HAL_GetTick() > interval+200 ) {
+	  if( HAL_GetTick() > interval + 200 )
+	  {
 		  interval = HAL_GetTick();
 		  toogleLED();
-		  printf("\r\nCount : %d", cnt++);
+		  printf("\r\nCount : %d", cnt++ );
 	  }
 
 	  if( HAL_UART_Receive(&huart1, &a, 1, 100) == HAL_OK ) {
 		  HAL_UART_Transmit(&huart1, &a, 1, 100 );
 	  }
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
