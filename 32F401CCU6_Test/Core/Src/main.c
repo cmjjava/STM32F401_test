@@ -78,6 +78,7 @@ void toogleLED( void )
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	uint32_t interval;
 
   /* USER CODE END 1 */
 
@@ -107,13 +108,14 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  interval = HAL_GetTick();
   while (1)
   {
     /* USER CODE END WHILE */
-
-	HAL_Delay(500);
-	toogleLED();
-
+	  if( HAL_GetTick() > interval+200 ) {
+		  interval = HAL_GetTick();
+		  toogleLED();
+	  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
