@@ -80,6 +80,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint32_t interval;
 	char str[] = "Hello !!\r\n";
+	char a;
 
   /* USER CODE END 1 */
 
@@ -116,7 +117,10 @@ int main(void)
 	  if( HAL_GetTick() > interval+200 ) {
 		  interval = HAL_GetTick();
 		  toogleLED();
-		  HAL_UART_Transmit(&huart1, str, strlen(str), 100 );
+	  }
+
+	  if( HAL_UART_Receive(&huart2, &a, 1, 100) == HAL_OK ) {
+		  HAL_UART_Transmit(&huart2, &a, 1, 100 );
 	  }
     /* USER CODE BEGIN 3 */
   }
