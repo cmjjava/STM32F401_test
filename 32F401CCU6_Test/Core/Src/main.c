@@ -44,7 +44,10 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+extern uint32_t cdcAvailable(void);
+extern uint8_t cdcRead( void );
+extern void cdcDataIn( uint8_t rx_data );
+extern uint32_t cdcWrite( uint8_t *p_data, uint16_t length );
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -130,16 +133,26 @@ int main(void)
 		  interval = HAL_GetTick();
 		  ledToggle(_DEF_LED1);
 		  printf("\r\nCount : %d", cnt++ );
-		  CDC_Transmit_FS("\r\nUSB CDC Test..", strlen("\r\nUSB CDC Test.."));
+		  // CDC_Transmit_FS("\r\nUSB CDC Test..", strlen("\r\nUSB CDC Test.."));
 	  }
 
-	  if( HAL_UART_Receive(&huart1, &a, 1, 100) == HAL_OK ) {
-		  HAL_UART_Transmit(&huart1, &a, 1, 100 );
+	  if( HAL_UART_Receive(&huart1, (const uint8_t *)&a, 1, 100) == HAL_OK ) {
+		  HAL_UART_Transmit(&huart1, (const uint8_t *)&a, 1, 100 );
 	  }
 
 	  if( buttonGet(_DEF_KEY1) == GPIO_PIN_SET )
 	  {
 		  printf("\r\nButton : ON");
+	  }
+
+	  if( cdcAvailable() > 0 )
+	  {
+		  uint8_t rx_data;
+
+		  rx_data = cdcRead();
+		  cdcWrite((uint8_t *)" RxData : ", strlen(" RxData : "));
+		  cdcWrite(&rx_data, 1);
+		  cdcWrite((uint8_t *)"\r\n", 2);
 	  }
     /* USER CODE END WHILE */
 
