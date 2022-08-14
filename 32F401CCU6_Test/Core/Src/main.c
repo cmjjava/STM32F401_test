@@ -61,22 +61,10 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void toogleLED( void )
-{
-	static GPIO_PinState LedState = GPIO_PIN_RESET;
-
-	if( LedState == GPIO_PIN_RESET )
-		LedState = GPIO_PIN_SET;
-	else
-		LedState = GPIO_PIN_RESET;
-
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, LedState);
-
-}
 
 int _write(int file, char *p, int len)
 {
-	HAL_UART_Transmit(&huart1, p, len, 10);
+	HAL_UART_Transmit(&huart1, (const uint8_t *)p, len, 10);
 	return len;
 }
 
@@ -90,7 +78,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	uint32_t interval;
-	char str[] = "Hello !!\r\n";
+	uint32_t pre_baud;
 	char a;
 	int cnt=0;
 
@@ -125,6 +113,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   hwInit();
 
+  pre_baud = uartGetBaud(_DEF_UART1);
+
   interval = HAL_GetTick();
   while (1)
   {
@@ -136,7 +126,7 @@ int main(void)
 		  // CDC_Transmit_FS("\r\nUSB CDC Test..", strlen("\r\nUSB CDC Test.."));
 	  }
 
-	  if( HAL_UART_Receive(&huart1, (const uint8_t *)&a, 1, 100) == HAL_OK ) {
+	  if( HAL_UART_Receive(&huart1, (uint8_t *)&a, 1, 100) == HAL_OK ) {
 		  HAL_UART_Transmit(&huart1, (const uint8_t *)&a, 1, 100 );
 	  }
 
@@ -145,14 +135,18 @@ int main(void)
 		  printf("\r\nButton : ON");
 	  }
 
-	  if( cdcAvailable() > 0 )
+	  if( uartAvailable(_DEF_UART1) > 0 )
 	  {
 		  uint8_t rx_data;
 
-		  rx_data = cdcRead();
-		  cdcWrite((uint8_t *)" RxData : ", strlen(" RxData : "));
-		  cdcWrite(&rx_data, 1);
-		  cdcWrite((uint8_t *)"\r\n", 2);
+		  rx_data = uartRead(_DEF_UART1);
+		  uartPrintf(_DEF_UART1,"\r\nRxData : %c 0x%X", rx_data, rx_data);
+	  }
+
+	  if( uartGetBaud(_DEF_UART1) !=  pre_baud )
+	  {
+		  pre_baud = uartGetBaud(_DEF_UART1);
+		  uartPrintf(_DEF_UART1, "\r\nChange : %d", pre_baud);
 	  }
     /* USER CODE END WHILE */
 
