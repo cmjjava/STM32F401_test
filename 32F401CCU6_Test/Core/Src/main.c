@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <stdio.h>
+#include "hw.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,18 +118,25 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  hwInit();
+
   interval = HAL_GetTick();
   while (1)
   {
 	  if( HAL_GetTick() > interval + 200 )
 	  {
 		  interval = HAL_GetTick();
-		  toogleLED();
+		  ledToggle(_DEF_LED1);
 		  printf("\r\nCount : %d", cnt++ );
 	  }
 
 	  if( HAL_UART_Receive(&huart1, &a, 1, 100) == HAL_OK ) {
 		  HAL_UART_Transmit(&huart1, &a, 1, 100 );
+	  }
+
+	  if( buttonGet(_DEF_KEY1) == GPIO_PIN_SET )
+	  {
+		  printf("\r\nButton : ON");
 	  }
     /* USER CODE END WHILE */
 
