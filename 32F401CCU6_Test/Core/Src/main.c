@@ -40,34 +40,28 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart1;
+RTC_HandleTypeDef hrtc;
+
+extern UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
+extern DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
-extern uint32_t cdcAvailable(void);
-extern uint8_t cdcRead( void );
-extern void cdcDataIn( uint8_t rx_data );
-extern uint32_t cdcWrite( uint8_t *p_data, uint16_t length );
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-int _write(int file, char *p, int len)
-{
-	HAL_UART_Transmit(&huart1, (const uint8_t *)p, len, 10);
-	return len;
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -79,7 +73,6 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint32_t interval;
 	uint32_t pre_baud;
-	char a;
 	int cnt=0;
 
   /* USER CODE END 1 */
@@ -102,9 +95,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USB_DEVICE_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -122,13 +117,17 @@ int main(void)
 	  {
 		  interval = HAL_GetTick();
 		  ledToggle(_DEF_LED1);
-		  printf("\r\nCount : %d", cnt++ );
+		  //uartPrintf(_DEF_UART2,"\r\nCount : %d", cnt++ );
 		  // CDC_Transmit_FS("\r\nUSB CDC Test..", strlen("\r\nUSB CDC Test.."));
 	  }
 
-	  if( HAL_UART_Receive(&huart1, (uint8_t *)&a, 1, 100) == HAL_OK ) {
-		  HAL_UART_Transmit(&huart1, (const uint8_t *)&a, 1, 100 );
-	  }
+	  if( uartAvailable(_DEF_UART2) > 0 )
+	  	  {
+	  		  uint8_t rx_data;
+
+	  		  rx_data = uartRead(_DEF_UART2);
+	  		  uartPrintf(_DEF_UART2,"%c", rx_data, rx_data);
+	  	  }
 
 	  if( buttonGet(_DEF_KEY1) == GPIO_PIN_SET )
 	  {
@@ -140,7 +139,7 @@ int main(void)
 		  uint8_t rx_data;
 
 		  rx_data = uartRead(_DEF_UART1);
-		  uartPrintf(_DEF_UART1,"\r\nRxData : %c 0x%X", rx_data, rx_data);
+		  uartPrintf(_DEF_UART1,"\r\nRxData[1] : %c 0x%X", rx_data, rx_data);
 	  }
 
 	  if( uartGetBaud(_DEF_UART1) !=  pre_baud )
@@ -172,8 +171,9 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 25;
@@ -198,6 +198,41 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
+
 }
 
 /**
@@ -263,6 +298,22 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 
 }
 
